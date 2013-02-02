@@ -128,7 +128,7 @@ class ACF_Address_Field extends acf_Field {
 
 		wp_register_style( 'acf-address-field', $this->base_uri_abs . '/address-field.css' );
 		
-		if( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
+		if( in_array( $pagenow, array( 'post.php', 'post-new.php', 'admin.php' ) ) ) {
 			wp_enqueue_style( 'acf-address-field' );
 		}
 	}
@@ -146,7 +146,7 @@ class ACF_Address_Field extends acf_Field {
 		global $pagenow;
 		wp_register_script( 'acf-address-field', $this->base_uri_abs . '/address-field.js', array( 'jquery-ui-sortable' ) );
 		
-		if( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
+		if( in_array( $pagenow, array( 'post.php', 'post-new.php', 'admin.php' ) ) ) {
 			wp_enqueue_script( 'acf-address-field' );
 		}
 	}
@@ -163,49 +163,49 @@ class ACF_Address_Field extends acf_Field {
 				'label'         => __( 'Address 1', $this->l10n_domain ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'address1',
+				'class'         => 'street-address',
 				'separator'     => '',
 			),
 			'address2'    => array(
 				'label'         => __( 'Address 2', $this->l10n_domain ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'address2',
+				'class'         => 'extended-address',
 				'separator'     => '',
 			),
 			'address3'    => array(
 				'label'         => __( 'Address 3', $this->l10n_domain ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'address3',
+				'class'         => 'extended-address',
 				'separator'     => '',
 			),
 			'city'        => array(
 				'label'         => __( 'City', $this->l10n_domain ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'city',
+				'class'         => 'locality',
 				'separator'     => ',',
 			),
 			'state'       => array(
 				'label'         => __( 'State', $this->l10n_domain ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'state',
+				'class'         => 'region',
 				'separator'     => '',
 			),
 			'postal_code' => array(
 				'label'         => __( 'Postal Code', $this->l10n_domain ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'postal_code',
+				'class'         => 'postal-code',
 				'separator'     => '',
 			),
 			'country'     => array(
 				'label'         => __( 'Country', $this->l10n_domain ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'country',
+				'class'         => 'country-name',
 				'separator'     => '',
 			),
 		);
@@ -223,6 +223,8 @@ class ACF_Address_Field extends acf_Field {
 		
 		$field[ 'address_layout' ] = ( array_key_exists( 'address_layout', $field ) && is_array( $field[ 'address_layout' ] ) ) ?
 			(array) $field[ 'address_layout' ] : $layout_defaults;
+			
+		$field['container'] = isset($field['container']) ? $field['container'] : 'address';
 		
 		return $field;
 	}
@@ -278,7 +280,7 @@ class ACF_Address_Field extends acf_Field {
 						<strong><?php _e( 'Enabled', $this->l10n_domain ); ?></strong>: <?php _e( 'Is this component used.', $this->l10n_domain ); ?><br />
 						<strong><?php _e( 'Label', $this->l10n_domain ); ?></strong>: <?php _e( 'Used on the add or edit a post screen.', $this->l10n_domain ); ?><br />
 						<strong><?php _e( 'Default Value', $this->l10n_domain ); ?></strong>: <?php _e( 'Default value for this component.', $this->l10n_domain ); ?><br />
-						<strong><?php _e( 'CSS Class', $this->l10n_domain ); ?></strong>: <?php _e( 'Class added to the component when using the api.', $this->l10n_domain ); ?><br />
+						<strong><?php _e( 'CSS Class', $this->l10n_domain ); ?></strong>: <?php _e( 'Class added to the component when using the api. Includes the <a href="http://microformats.org/wiki/adr" rel="external">microformat class per the Address spec</a> by default. For multiple classes, separate with a space', $this->l10n_domain ); ?><br />
 						<strong><?php _e( 'Separator', $this->l10n_domain ); ?></strong>: <?php _e( 'Text placed after the component when using the api.', $this->l10n_domain ); ?><br />
 					</p>
 				</td>
@@ -417,6 +419,26 @@ class ACF_Address_Field extends acf_Field {
 					</div>
 				</td>
 			</tr>
+			<tr class="field_option field_option_<?php echo $this->name; ?>">
+			<td class="label">
+				<label><?php _e('Address Parent Container', $this->l10n_domain); ?></label>
+				<p class="description"><?php _e('Would you like to use the <abbr title="">HTML5</abbr> <code>address</code> tag?', $this->l10n_domain); ?></p>
+			</td>
+			<td>
+				<?php 
+				$this->parent->create_field(array(
+					'type' => 'radio',
+					'name' => 'fields['.$key.'][container]',
+					'value' => $field['container'],					
+					'layout' => 'horizontal',
+					'choices' => array(
+						'address' => __('Yes', 'acf-location-field'),
+						'div' => __('No', 'acf-location-field')
+					)					
+				));
+				?>
+			</td>
+			</tr>
 		<?php
 	}
 	
@@ -461,7 +483,7 @@ class ACF_Address_Field extends acf_Field {
 		$output = '';
 		foreach( $layout as $layout_row ) {
 			if( empty( $layout_row ) ) continue;
-			$output .= '<div class="address_row">';
+			$output .= ($field['container'] == 'address') ? '<address class="adr">' : '<div class="adr">';
 			foreach( $layout_row as $name ) {
 				if( empty( $name ) || !$components[ $name ][ 'enabled' ] ) continue;
 					$output .= sprintf(
@@ -471,7 +493,7 @@ class ACF_Address_Field extends acf_Field {
 						$components[ $name ][ 'separator' ] ? esc_html( $components[ $name ][ 'separator' ] ) : ''
 					);
 			}
-			$output .= '</div>';
+			$output .= ($field['container'] == 'address') ? '</address>' : '</div>';
 		}
 		
 		return $output;
