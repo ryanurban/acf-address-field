@@ -1,46 +1,43 @@
 <?php
 /*
-* Plugin Name: Advanced Custom Fields - Address Field add-on
-* Plugin URI:  https://github.com/GCX/acf-address-field
-* Description: Adds an Address Field to Advanced Custom Fields. Pick and choose the components and layout of the address.
-* Author:      Brian Zoetewey
-* Author URI:  https://github.com/GCX
-* Version:     1.0.1
-* Text Domain: acf-address-field
-* Domain Path: /languages/
-* License:     Modified BSD
-*/
-?>
-<?php
-/*
- * Copyright (c) 2012, CAMPUS CRUSADE FOR CHRIST
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- * 
- *     Redistributions of source code must retain the above copyright notice, this
- *         list of conditions and the following disclaimer.
- *     Redistributions in binary form must reproduce the above copyright notice,
- *         this list of conditions and the following disclaimer in the documentation
- *         and/or other materials provided with the distribution.
- *     Neither the name of CAMPUS CRUSADE FOR CHRIST nor the names of its
- *         contributors may be used to endorse or promote products derived from this
- *         software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
+Plugin Name:  Advanced Custom Fields - Address Field add-on
+Plugin URI:   https://github.com/GCX/acf-address-field
+Description:  Adds an Address Field to Advanced Custom Fields. Pick and choose the components and layout of the address.
+Version:      1.0.2
+Author:       Brian Zoetewey
+Author URI:   https://github.com/GCX
+Contributors: Ryan Urban <ryan@fringewebdevelopment.com>
+Text Domain:  acf-address-field
+Domain Path:  /languages/
+License:      Modified BSD
+
+	Copyright (c) 2012, CAMPUS CRUSADE FOR CHRIST
+	All rights reserved.
+	
+	Redistribution and use in source and binary forms, with or without modification,
+	are permitted provided that the following conditions are met:
+ 
+	Redistributions of source code must retain the above copyright notice, this
+	list of conditions and the following disclaimer.
+	Redistributions in binary form must reproduce the above copyright notice,
+	this list of conditions and the following disclaimer in the documentation
+	and/or other materials provided with the distribution.
+	Neither the name of CAMPUS CRUSADE FOR CHRIST nor the names of its
+	contributors may be used to endorse or promote products derived from this
+	software without specific prior written permission.
+ 
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+	INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+	OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+	OF THE POSSIBILITY OF SUCH DAMAGE.
+	
  */
-?>
-<?php
 
 if( !class_exists( 'ACF_Address_Field' ) && class_exists( 'acf_Field' ) ) :
 
@@ -49,31 +46,16 @@ if( !class_exists( 'ACF_Address_Field' ) && class_exists( 'acf_Field' ) ) :
  * 
  * This addon to Advanced Custom Fields adds the capability for
  * a multi-component address input. It has the ability to customize the
- * individual components and the layout of the address block.
+ * individual components and the layout of the address block, and uses
+ * the microformats Address specification as well. You can also choose
+ * whether or not to use a standard HTML container or an HTML5 address
+ * container.
  * 
  * @author Brian Zoetewey <brian.zoetewey@ccci.org>
+ * @contributor Ryan Urban <ryan@fringewebdevelopment.com>
  * @version 1.0.1
  */
 class ACF_Address_Field extends acf_Field {
-	/**
-	 * Base directory
-	 * @var string
-	 */
-	private $base_dir;
-	
-	/**
-	 * Relative Uri from the WordPress ABSPATH constant
-	 * @var string
-	 */
-	private $base_uri_rel;
-	
-	/**
-	 * Absolute Uri
-	 * 
-	 * This is used to create urls to CSS and JavaScript files.
-	 * @var string
-	 */
-	private $base_uri_abs;
 
 	/**
 	* WordPress Localization Text Domain
@@ -90,25 +72,12 @@ class ACF_Address_Field extends acf_Field {
 	public function __construct( $parent ) {
 		parent::__construct( $parent );
 		
-		//Get the textdomain from the Helper class
+		// Get the textdomain from the Helper class
 		$this->l10n_domain = ACF_Address_Field_Helper::L10N_DOMAIN;
 		
-		$this->base_dir = rtrim( dirname( realpath( __FILE__ ) ), DIRECTORY_SEPARATOR );
-		
-		//Build the base relative uri by searching backwards until we encounter the wordpress ABSPATH
-		$root = array_pop( explode( DIRECTORY_SEPARATOR, rtrim( ABSPATH, DIRECTORY_SEPARATOR ) ) );
-		$path_parts = explode( DIRECTORY_SEPARATOR, $this->base_dir );
-		$parts = array();
-		while( $part = array_pop( $path_parts ) ) {
-			if( $part == $root )
-				break;
-			array_unshift( $parts, $part );
-		}
-		$this->base_uri_rel = '/' . implode( '/', $parts );
-		$this->base_uri_abs = get_site_url( null, $this->base_uri_rel );
-		
+		// Our ACF add-on name & title
 		$this->name  = 'address-field';
-		$this->title = __( 'Address', $this->l10n_domain );
+		$this->title = __( 'Address', 'acf-address-field' );
 		
 		add_action( 'admin_print_scripts', array( &$this, 'admin_print_scripts' ), 12, 0 );
 		add_action( 'admin_print_styles', array( &$this, 'admin_print_styles' ), 12, 0 );
@@ -126,9 +95,9 @@ class ACF_Address_Field extends acf_Field {
 	public function admin_print_styles() {
 		global $pagenow;
 
-		wp_register_style( 'acf-address-field', $this->base_uri_abs . '/address-field.css' );
+		wp_register_style( 'acf-address-field', plugins_url( 'address-field.css', __FILE__ ) );
 		
-		if( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
+		if( in_array( $pagenow, array( 'post.php', 'post-new.php', 'admin.php' ) ) ) {
 			wp_enqueue_style( 'acf-address-field' );
 		}
 	}
@@ -144,9 +113,9 @@ class ACF_Address_Field extends acf_Field {
 	 */
 	public function admin_print_scripts() {
 		global $pagenow;
-		wp_register_script( 'acf-address-field', $this->base_uri_abs . '/address-field.js', array( 'jquery-ui-sortable' ) );
+		wp_register_script( 'acf-address-field', plugins_url( 'address-field.js', __FILE__ ), array( 'jquery-ui-sortable' ) );
 		
-		if( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
+		if( in_array( $pagenow, array( 'post.php', 'post-new.php', 'admin.php' ) ) ) {
 			wp_enqueue_script( 'acf-address-field' );
 		}
 	}
@@ -160,52 +129,52 @@ class ACF_Address_Field extends acf_Field {
 	private function set_field_defaults( &$field ) {
 		$component_defaults = array(
 			'address1'    => array(
-				'label'         => __( 'Address 1', $this->l10n_domain ),
+				'label'         => __( 'Address 1', 'acf-address-field' ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'address1',
+				'class'         => 'street-address',
 				'separator'     => '',
 			),
 			'address2'    => array(
-				'label'         => __( 'Address 2', $this->l10n_domain ),
+				'label'         => __( 'Address 2', 'acf-address-field' ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'address2',
+				'class'         => 'extended-address',
 				'separator'     => '',
 			),
 			'address3'    => array(
-				'label'         => __( 'Address 3', $this->l10n_domain ),
+				'label'         => __( 'Address 3', 'acf-address-field' ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'address3',
+				'class'         => 'extended-address',
 				'separator'     => '',
 			),
 			'city'        => array(
-				'label'         => __( 'City', $this->l10n_domain ),
+				'label'         => __( 'City', 'acf-address-field' ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'city',
+				'class'         => 'locality',
 				'separator'     => ',',
 			),
 			'state'       => array(
-				'label'         => __( 'State', $this->l10n_domain ),
+				'label'         => __( 'State', 'acf-address-field' ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'state',
+				'class'         => 'region',
 				'separator'     => '',
 			),
 			'postal_code' => array(
-				'label'         => __( 'Postal Code', $this->l10n_domain ),
+				'label'         => __( 'Postal Code', 'acf-address-field' ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'postal_code',
+				'class'         => 'postal-code',
 				'separator'     => '',
 			),
 			'country'     => array(
-				'label'         => __( 'Country', $this->l10n_domain ),
+				'label'         => __( 'Country', 'acf-address-field' ),
 				'default_value' => '',
 				'enabled'       => 1,
-				'class'         => 'country',
+				'class'         => 'country-name',
 				'separator'     => '',
 			),
 		);
@@ -223,6 +192,8 @@ class ACF_Address_Field extends acf_Field {
 		
 		$field[ 'address_layout' ] = ( array_key_exists( 'address_layout', $field ) && is_array( $field[ 'address_layout' ] ) ) ?
 			(array) $field[ 'address_layout' ] : $layout_defaults;
+			
+		$field['container'] = isset($field['container']) ? $field['container'] : 'address';
 		
 		return $field;
 	}
@@ -273,35 +244,35 @@ class ACF_Address_Field extends acf_Field {
 		?>
 			<tr class="field_option field_option_<?php echo $this->name; ?>">
 				<td class="label">
-					<label><?php _e( 'Address Components' , $this->l10n_domain ); ?></label>
+					<label><?php _e( 'Address Components' , 'acf-address-field' ); ?></label>
 					<p class="description">
-						<strong><?php _e( 'Enabled', $this->l10n_domain ); ?></strong>: <?php _e( 'Is this component used.', $this->l10n_domain ); ?><br />
-						<strong><?php _e( 'Label', $this->l10n_domain ); ?></strong>: <?php _e( 'Used on the add or edit a post screen.', $this->l10n_domain ); ?><br />
-						<strong><?php _e( 'Default Value', $this->l10n_domain ); ?></strong>: <?php _e( 'Default value for this component.', $this->l10n_domain ); ?><br />
-						<strong><?php _e( 'CSS Class', $this->l10n_domain ); ?></strong>: <?php _e( 'Class added to the component when using the api.', $this->l10n_domain ); ?><br />
-						<strong><?php _e( 'Separator', $this->l10n_domain ); ?></strong>: <?php _e( 'Text placed after the component when using the api.', $this->l10n_domain ); ?><br />
+						<strong><?php _e( 'Enabled', 'acf-address-field' ); ?></strong>: <?php _e( 'Is this component used.', 'acf-address-field' ); ?><br />
+						<strong><?php _e( 'Label', 'acf-address-field' ); ?></strong>: <?php _e( 'Used on the add or edit a post screen.', 'acf-address-field' ); ?><br />
+						<strong><?php _e( 'Default Value', 'acf-address-field' ); ?></strong>: <?php _e( 'Default value for this component.', 'acf-address-field' ); ?><br />
+						<strong><?php _e( 'CSS Class', 'acf-address-field' ); ?></strong>: <?php _e( 'Class added to the component when using the api. Includes the <a href="http://microformats.org/wiki/adr" rel="external">microformat class per the Address spec</a> by default. For multiple classes, separate with a space', 'acf-address-field' ); ?><br />
+						<strong><?php _e( 'Separator', 'acf-address-field' ); ?></strong>: <?php _e( 'Text placed after the component when using the api.', 'acf-address-field' ); ?><br />
 					</p>
 				</td>
 				<td>
 					<table>
 						<thead>
 							<tr>
-								<th><?php _e( 'Field', $this->l10n_domain ); ?></th>
-								<th><?php _e( 'Enabled', $this->l10n_domain ); ?></th>
-								<th><?php _e( 'Label', $this->l10n_domain ); ?></th>
-								<th><?php _e( 'Default Value', $this->l10n_domain ); ?></th>
-								<th><?php _e( 'CSS Class', $this->l10n_domain ); ?></th>
-								<th><?php _e( 'Separator', $this->l10n_domain ); ?></th>
+								<th><?php _e( 'Field', 'acf-address-field' ); ?></th>
+								<th><?php _e( 'Enabled', 'acf-address-field' ); ?></th>
+								<th><?php _e( 'Label', 'acf-address-field' ); ?></th>
+								<th><?php _e( 'Default Value', 'acf-address-field' ); ?></th>
+								<th><?php _e( 'CSS Class', 'acf-address-field' ); ?></th>
+								<th><?php _e( 'Separator', 'acf-address-field' ); ?></th>
 							</tr>
 						</thead>
 						<tfoot>
 							<tr>
-								<th><?php _e( 'Field', $this->l10n_domain ); ?></th>
-								<th><?php _e( 'Enabled', $this->l10n_domain ); ?></th>
-								<th><?php _e( 'Label', $this->l10n_domain ); ?></th>
-								<th><?php _e( 'Default Value', $this->l10n_domain ); ?></th>
-								<th><?php _e( 'CSS Class', $this->l10n_domain ); ?></th>
-								<th><?php _e( 'Separator', $this->l10n_domain ); ?></th>
+								<th><?php _e( 'Field', 'acf-address-field' ); ?></th>
+								<th><?php _e( 'Enabled', 'acf-address-field' ); ?></th>
+								<th><?php _e( 'Label', 'acf-address-field' ); ?></th>
+								<th><?php _e( 'Default Value', 'acf-address-field' ); ?></th>
+								<th><?php _e( 'CSS Class', 'acf-address-field' ); ?></th>
+								<th><?php _e( 'Separator', 'acf-address-field' ); ?></th>
 							</tr>
 						</tfoot>
 						<tbody>
@@ -366,8 +337,8 @@ class ACF_Address_Field extends acf_Field {
 			</tr>
 			<tr class="field_option field_option_<?php echo $this->name; ?>">
 				<td class="label">
-					<label><?php _e( 'Address Layout' , $this->l10n_domain ); ?></label>
-					<p class="description"><?php _e( 'Drag address components to the desired location. This controls the layout of the address in post metaboxes and the get_field() api method.', $this->l10n_domain ); ?></p>
+					<label><?php _e( 'Address Layout' , 'acf-address-field' ); ?></label>
+					<p class="description"><?php _e( 'Drag address components to the desired location. This controls the layout of the address in post metaboxes and the get_field() api method.', 'acf-address-field' ); ?></p>
 					<input type="hidden" name="address_layout_key" value="<?php echo $key; ?>" />
 				</td>
 				<td>
@@ -377,7 +348,7 @@ class ACF_Address_Field extends acf_Field {
 							foreach( $layout as $layout_row ) :
 								if( count( $layout_row ) <= 0 ) continue;
 						?>
-							<label><?php printf( __( 'Line %d:', $this->l10n_domain ), $row + 1 ); ?></label>
+							<label><?php printf( __( 'Line %d:', 'acf-address-field' ), $row + 1 ); ?></label>
 							<ul class="row">
 								<?php
 									$col = 0;
@@ -402,11 +373,11 @@ class ACF_Address_Field extends acf_Field {
 							endforeach;
 							for( ; $row < 4; $row++ ) :
 						?>
-							<label><?php printf( __( 'Line %d:', $this->l10n_domain ), $row + 1 ); ?></label>
+							<label><?php printf( __( 'Line %d:', 'acf-address-field' ), $row + 1 ); ?></label>
 							<ul class="row">
 							</ul>
 						<?php endfor; ?>
-						<label><?php _e( 'Not Displayed:', $this->l10n_domain ); ?></label>
+						<label><?php _e( 'Not Displayed:', 'acf-address-field' ); ?></label>
 						<ul class="row missing">
 							<?php foreach( $missing as $name ) : ?>
 								<li class="item <?php echo $components[ $name ][ 'enabled' ] ? '' : 'disabled'; ?>" name="<?php echo $name; ?>">
@@ -416,6 +387,26 @@ class ACF_Address_Field extends acf_Field {
 						</ul>
 					</div>
 				</td>
+			</tr>
+			<tr class="field_option field_option_<?php echo $this->name; ?>">
+			<td class="label">
+				<label><?php _e('Address Parent Container', 'acf-address-field'); ?></label>
+				<p class="description"><?php _e('Would you like to use the <abbr title="">HTML5</abbr> <code>address</code> tag?', 'acf-address-field'); ?></p>
+			</td>
+			<td>
+				<?php 
+				$this->parent->create_field(array(
+					'type' => 'radio',
+					'name' => 'fields['.$key.'][container]',
+					'value' => $field['container'],					
+					'layout' => 'horizontal',
+					'choices' => array(
+						'address' => __('Yes', 'acf-location-field'),
+						'div' => __('No', 'acf-location-field')
+					)					
+				));
+				?>
+			</td>
 			</tr>
 		<?php
 	}
@@ -455,23 +446,37 @@ class ACF_Address_Field extends acf_Field {
 		
 		$components = $field[ 'address_components' ];
 		$layout = $field[ 'address_layout' ];
-		
 		$values = $this->get_value( $post_id, $field );
+		$check_values = array_filter( $values );
 		
 		$output = '';
-		foreach( $layout as $layout_row ) {
-			if( empty( $layout_row ) ) continue;
-			$output .= '<div class="address_row">';
-			foreach( $layout_row as $name ) {
-				if( empty( $name ) || !$components[ $name ][ 'enabled' ] ) continue;
-					$output .= sprintf(
-						'<span %2$s>%1$s%3$s </span>',
-						$values[ $name ],
-						$components[ $name ][ 'class' ] ? 'class="' . esc_attr( $components[ $name ][ 'class' ] ) . '"' : '',
-						$components[ $name ][ 'separator' ] ? esc_html( $components[ $name ][ 'separator' ] ) : ''
-					);
+		if ( !empty( $check_values ) ) {
+			$output .= ($field['container'] == 'address') ? '<address class="adr">' : '<div class="adr">';
+			foreach( $layout as $layout_row ) {
+				// Check if first or last address element in row				
+				$i = 0; $rows = count( $layout_row );
+				foreach( $layout_row as $name ) {
+					if( $values[ $name ] && $components[ $name ][ 'enabled' ] ) {
+						
+						if ($i == 0) // first element in row
+        					$output .= '<div class="address_row">';
+						
+						$output .= sprintf(
+							'<span %2$s>%1$s</span>%3$s ',
+							$values[ $name ],
+							$components[ $name ][ 'class' ] ? 'class="' . esc_attr( $components[ $name ][ 'class' ] ) . '"' : '',
+							$components[ $name ][ 'separator' ] ? esc_html( $components[ $name ][ 'separator' ] ) : ''
+						);
+							
+						if ($i == $rows - 1) // last element in row
+        					$output .= '</div><!-- .address-row -->';
+    						
+    					$i++;
+							
+					}
+				}
 			}
-			$output .= '</div>';
+			$output .= ($field['container'] == 'address') ? '</address><!-- .adr -->' : '</div><!-- .adr -->';
 		}
 		
 		return $output;
@@ -497,13 +502,6 @@ if( !class_exists( 'ACF_Address_Field_Helper' ) ) :
  * @todo Provide shortcode support for address fields
  */
 class ACF_Address_Field_Helper {
-	/**
-	* WordPress Localization Text Domain
-	*
-	* Used in wordpress localization and translation methods.
-	* @var string
-	*/
-	const L10N_DOMAIN = 'acf-address-field';
 	
 	/**
 	 * Singleton instance
@@ -531,6 +529,14 @@ class ACF_Address_Field_Helper {
 	 */
 	private function __clone() {
 	}
+	
+	/**
+	 * WordPress Localization Text Domain
+	 *
+	 * Used in wordpress localization and translation methods.
+	 * @var string
+	 */
+	const L10N_DOMAIN = 'acf-address-field';
 	
 	/**
 	 * Language directory path
